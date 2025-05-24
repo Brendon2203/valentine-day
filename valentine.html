@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Criação de Pedido de Namoro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        .dancing-font {
+            font-family: 'Dancing Script', cursive;
+        }
+        .montserrat-font {
+            font-family: 'Montserrat', sans-serif;
+        }
+        .heart {
+            animation: heartbeat 1.5s infinite;
+        }
+        @keyframes heartbeat {
+            0% { transform: scale(1); }
+            25% { transform: scale(1.1); }
+            50% { transform: scale(1); }
+            75% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+        .slide {
+            transition: opacity 1s ease-in-out;
+        }
+        .fade-in {
+            animation: fadeIn 2s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .romantic-bg {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
+        }
+    </style>
+</head>
+<body class="montserrat-font bg-pink-50 min-h-screen">
+    <div id="app" class="container mx-auto px-4 py-8">
+        <!-- Form Section -->
+        <div id="form-section" class="max-w-2xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6 fade-in">
+            <h1 class="text-3xl font-bold text-center text-pink-600 mb-6 dancing-font">Crie Seu Pedido de Namoro</h1>
+            
+            <div class="space-y-6">
+                <div>
+                    <label for="loved-name" class="block text-sm font-medium text-gray-700">Nome da Pessoa Amada</label>
+                    <input type="text" id="loved-name" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500" placeholder="Digite o nome da pessoa especial">
+                </div>
+                
+                <div>
+                    <label for="message" class="block text-sm font-medium text-gray-700">Sua Mensagem Especial</label>
+                    <textarea id="message" rows="5" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500" placeholder="Escreva sua declaração de amor..."></textarea>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Fotos Especiais (até 5)</label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                        <div class="space-y-1 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                            <div class="flex text-sm text-gray-600">
+                                <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-pink-600 hover:text-pink-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-pink-500">
+                                    <span>Enviar fotos</span>
+                                    <input id="file-upload" name="file-upload" type="file" class="sr-only" multiple accept="image/*">
+                                </label>
+                                <p class="pl-1">ou arraste e solte</p>
+                            </div>
+                            <p class="text-xs text-gray-500">PNG, JPG, GIF até 5MB cada</p>
+                        </div>
+                    </div>
+                    <div id="preview-container" class="mt-2 grid grid-cols-3 gap-2 hidden">
+                        <!-- Preview images will be added here -->
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="spotify-link" class="block text-sm font-medium text-gray-700">Link da Música do Spotify</label>
+                    <input type="text" id="spotify-link" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-pink-500 focus:border-pink-500" placeholder="Cole o link da música do Spotify">
+                    <p class="mt-1 text-sm text-gray-500">Exemplo: https://open.spotify.com/track/...</p>
+                </div>
+                
+                <div class="flex justify-center">
+                    <button id="generate-btn" class="px-6 py-3 bg-pink-600 text-white font-medium rounded-md shadow-sm hover:bg-pink-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-pink-500 dancing-font text-xl">
+                        Criar Meu Pedido de Namoro
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Generated Page (initially hidden) -->
+        <div id="generated-page" class="hidden max-w-4xl mx-auto romantic-bg rounded-xl shadow-xl overflow-hidden fade-in">
+            <!-- Header with name -->
+            <div class="p-8 text-center bg-white bg-opacity-30 backdrop-blur-sm">
+                <h1 id="display-name" class="text-5xl font-bold text-pink-800 dancing-font mb-2"></h1>
+                <div class="flex justify-center">
+                    <svg class="h-10 w-10 text-red-500 heart" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                        <path fill-rule="evenodd" d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+            </div>
+            
+            <!-- Message -->
+            <div class="p-8 text-center">
+                <p id="display-message" class="text-xl text-gray-800 italic leading-relaxed"></p>
+            </div>
+            
+            <!-- Photo Carousel -->
+            <div class="relative h-96 overflow-hidden">
+                <div id="carousel" class="h-full flex transition-transform duration-1000">
+                    <!-- Images will be added here -->
+                </div>
+                <button id="prev-btn" class="absolute left-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 rounded-full p-2 hover:bg-opacity-80">
+                    <svg class="h-6 w-6 text-pink-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <button id="next-btn" class="absolute right-2 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-50 rounded-full p-2 hover:bg-opacity-80">
+                    <svg class="h-6 w-6 text-pink-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Spotify Player -->
+            <div id="spotify-player" class="p-6 flex justify-center">
+                <!-- Spotify iframe will be added here -->
+            </div>
+            
+            <!-- QR Code -->
+            <div class="p-6 bg-white bg-opacity-30 backdrop-blur-sm text-center">
+                <h3 class="text-xl text-pink-800 dancing-font mb-2">Compartilhe este momento especial</h3>
+                <div id="qrcode" class="flex justify-center mb-4"></div>
+                <p class="text-gray-700">Escaneie este QR Code para acessar esta página novamente</p>
+            </div>
+            
+            <!-- Back button -->
+            <div class="p-4 text-center">
+                <button id="back-btn" class="px-4 py-2 bg-pink-600 text-white rounded-md hover:bg-pink-700">
+                    Voltar e Criar Outro
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Form elements
+            const lovedNameInput = document.getElementById('loved-name');
+            const messageInput = document.getElementById('message');
+            const fileUploadInput = document.getElementById('file-upload');
+            const spotifyLinkInput = document.getElementById('spotify-link');
+            const generateBtn = document.getElementById('generate-btn');
+            const previewContainer = document.getElementById('preview-container');
+            
+            // Generated page elements
+            const formSection = document.getElementById('form-section');
+            const generatedPage = document.getElementById('generated-page');
+            const displayName = document.getElementById('display-name');
+            const displayMessage = document.getElementById('display-message');
+            const carousel = document.getElementById('carousel');
+            const spotifyPlayer = document.getElementById('spotify-player');
+            const qrcodeDiv = document.getElementById('qrcode');
+            const backBtn = document.getElementById('back-btn');
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            
+            let uploadedImages = [];
+            let currentSlide = 0;
+            let carouselInterval;
+            
+            // Handle file upload
+            fileUploadInput.addEventListener('change', function(e) {
+                const files = Array.from(e.target.files).slice(0, 5); // Limit to 5 files
+                uploadedImages = [];
+                previewContainer.innerHTML = '';
+                
+                if (files.length > 0) {
+                    previewContainer.classList.remove('hidden');
+                    
+                    files.forEach((file, index) => {
+                        if (!file.type.match('image.*')) return;
+                        
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            uploadedImages.push(e.target.result);
+                            
+                            const imgContainer = document.createElement('div');
+                            imgContainer.className = 'relative';
+                            
+                            const img = document.createElement('img');
+                            img.src = e.target.result;
+                            img.className = 'h-32 w-full object-cover rounded';
+                            img.alt = `Foto ${index + 1}`;
+                            
+                            const removeBtn = document.createElement('button');
+                            removeBtn.className = 'absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs';
+                            removeBtn.innerHTML = '×';
+                            removeBtn.onclick = function() {
+                                imgContainer.remove();
+                                uploadedImages = uploadedImages.filter(img => img !== e.target.result);
+                                if (uploadedImages.length === 0) {
+                                    previewContainer.classList.add('hidden');
+                                }
+                            };
+                            
+                            imgContainer.appendChild(img);
+                            imgContainer.appendChild(removeBtn);
+                            previewContainer.appendChild(imgContainer);
+                        };
+                        reader.readAsDataURL(file);
+                    });
+                } else {
+                    previewContainer.classList.add('hidden');
+                }
+            });
+            
+            // Generate the page
+            generateBtn.addEventListener('click', function() {
+                // Validate inputs
+                if (!lovedNameInput.value.trim()) {
+                    alert('Por favor, digite o nome da pessoa amada');
+                    return;
+                }
+                
+                if (!messageInput.value.trim()) {
+                    alert('Por favor, escreva sua mensagem especial');
+                    return;
+                }
+                
+                if (uploadedImages.length === 0) {
+                    alert('Por favor, adicione pelo menos uma foto');
+                    return;
+                }
+                
+                // Set the display values
+                displayName.textContent = lovedNameInput.value;
+                displayMessage.textContent = messageInput.value;
+                
+                // Create carousel slides
+                carousel.innerHTML = '';
+                uploadedImages.forEach((imgSrc, index) => {
+                    const slide = document.createElement('div');
+                    slide.className = `slide min-w-full h-full flex items-center justify-center ${index === 0 ? 'opacity-100' : 'opacity-0'}`;
+                    
+                    const img = document.createElement('img');
+                    img.src = imgSrc;
+                    img.className = 'max-h-full max-w-full object-contain rounded-lg shadow-lg';
+                    img.alt = `Foto ${index + 1}`;
+                    
+                    slide.appendChild(img);
+                    carousel.appendChild(slide);
+                });
+                
+                // Handle Spotify link
+                spotifyPlayer.innerHTML = '';
+                const spotifyLink = spotifyLinkInput.value.trim();
+                if (spotifyLink) {
+                    // Extract track ID from URL
+                    let trackId = '';
+                    const spotifyRegex = /spotify:track:([a-zA-Z0-9]+)/;
+                    const urlRegex = /open\.spotify\.com\/track\/([a-zA-Z0-9]+)/;
+                    
+                    if (spotifyRegex.test(spotifyLink)) {
+                        trackId = spotifyLink.match(spotifyRegex)[1];
+                    } else if (urlRegex.test(spotifyLink)) {
+                        trackId = spotifyLink.match(urlRegex)[1];
+                    }
+                    
+                    if (trackId) {
+                        const iframe = document.createElement('iframe');
+                        iframe.src = `https://open.spotify.com/embed/track/${trackId}`;
+                        iframe.width = '300';
+                        iframe.height = '80';
+                        iframe.frameBorder = '0';
+                        iframe.allow = 'encrypted-media';
+                        iframe.className = 'rounded-lg shadow-lg';
+                        spotifyPlayer.appendChild(iframe);
+                    } else {
+                        spotifyPlayer.innerHTML = '<p class="text-gray-700">Link do Spotify inválido</p>';
+                    }
+                } else {
+                    spotifyPlayer.innerHTML = '<p class="text-gray-700">Nenhuma música selecionada</p>';
+                }
+                
+                // Generate QR Code
+                const currentUrl = window.location.href.split('#')[0];
+                const qr = qrcode(0, 'L');
+                qr.addData(currentUrl);
+                qr.make();
+                qrcodeDiv.innerHTML = qr.createImgTag(4);
+                
+                // Show the generated page
+                formSection.classList.add('hidden');
+                generatedPage.classList.remove('hidden');
+                
+                // Start carousel auto-slide
+                startCarousel();
+            });
+            
+            // Back button to return to form
+            backBtn.addEventListener('click', function() {
+                formSection.classList.remove('hidden');
+                generatedPage.classList.add('hidden');
+                stopCarousel();
+            });
+            
+            // Carousel navigation
+            function startCarousel() {
+                stopCarousel();
+                carouselInterval = setInterval(nextSlide, 5000);
+            }
+            
+            function stopCarousel() {
+                if (carouselInterval) {
+                    clearInterval(carouselInterval);
+                }
+            }
+            
+            function nextSlide() {
+                showSlide((currentSlide + 1) % uploadedImages.length);
+            }
+            
+            function prevSlide() {
+                showSlide((currentSlide - 1 + uploadedImages.length) % uploadedImages.length);
+            }
+            
+            function showSlide(index) {
+                const slides = document.querySelectorAll('.slide');
+                slides[currentSlide].classList.remove('opacity-100');
+                slides[currentSlide].classList.add('opacity-0');
+                
+                currentSlide = index;
+                
+                slides[currentSlide].classList.remove('opacity-0');
+                slides[currentSlide].classList.add('opacity-100');
+            }
+            
+            prevBtn.addEventListener('click', function() {
+                prevSlide();
+                startCarousel(); // Reset the interval
+            });
+            
+            nextBtn.addEventListener('click', function() {
+                nextSlide();
+                startCarousel(); // Reset the interval
+            });
+        });
+    </script>
+</body>
+</html>
