@@ -1,5 +1,6 @@
+from flask import Flask
 from app import app
 
-# Vercel requer uma função handler
-def handler(request, context):
+# Handler para a Vercel
+def handler(request):
     return app(request) 
