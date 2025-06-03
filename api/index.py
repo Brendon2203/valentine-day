@@ -1,5 +1,6 @@
-from app import app
+from api.app import app
 
 # Handler para a Vercel
 def handler(request):
-    return app(request) 
+    with app.request_context(request):
+        return app.handle_request() 
