@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, jsonify
 import os
+import json
+import uuid
 from werkzeug.utils import secure_filename
 import cloudinary
 import cloudinary.uploader
@@ -25,6 +27,9 @@ cloudinary.config(
 # Configurações para upload
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 
+# Dicionário para armazenar os pedidos (em memória)
+PROPOSALS = {}
+
 # Verifica se o arquivo tem uma extensão permitida
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -42,6 +47,9 @@ def create():
     message = data.get('message', '').strip()
     spotify_link = data.get('spotifyLink', '').strip()
 
+    # Gera um ID único para o pedido
+    proposal_id = str(uuid.uuid4())[:8]
+    
     # Upload de arquivos para o Cloudinary
     files = request.files.getlist('photos[]')
     uploaded_urls = []
@@ -60,13 +68,33 @@ def create():
                 print(f"Erro ao fazer upload: {str(e)}")
                 continue
 
-    # Retorna os dados para renderização no frontend
+    # Armazena os dados do pedido
+    proposal_data = {
+        'id': proposal_id,
+        'loved_name': loved_name,
+        'message': message,
+        'spotify_link': spotify_link,
+        'photos': uploaded_urls
+    }
+    
+    PROPOSALS[proposal_id] = proposal_data
+
+    # Retorna os dados com o ID único
     return jsonify({
+        'id': proposal_id,
+        'url': f'/proposal/{proposal_id}',
         'lovedName': loved_name,
         'message': message,
         'spotifyLink': spotify_link,
         'photos': uploaded_urls
     })
+
+@app.route('/proposal/<proposal_id>')
+def view_proposal(proposal_id):
+    proposal = PROPOSALS.get(proposal_id)
+    if not proposal:
+        return "Pedido não encontrado", 404
+    return render_template('proposal.html', proposal=proposal)
 
 # Necessário para a Vercel rodar corretamente
 app = app
