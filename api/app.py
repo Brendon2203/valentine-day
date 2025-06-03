@@ -2,25 +2,32 @@ from flask import Flask, render_template, request, redirect, url_for, send_from_
 import os
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__)
+# Inicializa o app Flask
+app = Flask(
+    __name__,
+    template_folder="../templates",  # Caminho relativo na Vercel
+    static_folder="../static"        # Pasta de arquivos estáticos
+)
 
 # Configurações para upload
-UPLOAD_FOLDER = 'static/uploads'
+UPLOAD_FOLDER = '../static/uploads'  # Caminho relativo ajustado para Vercel
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
+# Garante que a pasta de uploads exista
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
+# Verifica se o arquivo tem uma extensão permitida
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Página do formulário
+# Página inicial (carrega index.html)
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Endpoint para receber os dados do formulário via POST (fetch/Ajax)
+# Endpoint para receber os dados do formulário via POST
 @app.route('/create', methods=['POST'])
 def create():
     data = request.form
@@ -28,7 +35,7 @@ def create():
     message = data.get('message', '').strip()
     spotify_link = data.get('spotifyLink', '').strip()
 
-    # Upload files
+    # Upload de arquivos
     files = request.files.getlist('photos[]')
 
     saved_files = []
@@ -39,7 +46,7 @@ def create():
             file.save(path)
             saved_files.append(url_for('uploaded_file', filename=filename))
 
-    # Retornar os dados para renderização no frontend
+    # Retorna os dados para renderização no frontend
     return jsonify({
         'lovedName': loved_name,
         'message': message,
@@ -52,5 +59,5 @@ def create():
 def uploaded_file(filename):
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-if __name__ == '__main__':
-    app.run(debug=True)
+# Necessário para a Vercel rodar corretamente
+app = app
