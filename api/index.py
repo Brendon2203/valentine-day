@@ -1,6 +1,10 @@
-from api.app import app
+from flask import Flask
 
-# Handler para a Vercel
-def handler(request):
-    with app.request_context(request):
-        return app.handle_request() 
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return 'API funcionando!'
+
+# Necessário para a Vercel
+app.debug = True 
